@@ -20,11 +20,12 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
-  const updated = updateProduct(id, {
+  const updated = await updateProduct(id, {
     category: typeof body.category === "string" ? body.category : undefined,
     name: typeof body.name === "string" ? body.name : undefined,
     description: typeof body.description === "string" ? body.description : undefined,
     price: typeof body.price === "number" ? body.price : undefined,
+    image: typeof body.image === "string" ? body.image : undefined,
     available: typeof body.available === "boolean" ? body.available : undefined,
   });
   if (!updated) return NextResponse.json({ error: "Product not found." }, { status: 404 });
@@ -36,7 +37,7 @@ export async function DELETE(_request: NextRequest, { params }: Ctx) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
   const id = Number((await params).id);
-  const ok = deleteProduct(id);
+  const ok = await deleteProduct(id);
   if (!ok) return NextResponse.json({ error: "Product not found." }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

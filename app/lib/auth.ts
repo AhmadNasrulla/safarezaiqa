@@ -49,7 +49,7 @@ function toSafe(u: User): SafeUser {
 export async function startSession(userId: number) {
   const token = randomBytes(32).toString("hex");
   const expiresAt = Date.now() + SESSION_TTL_MS;
-  dbCreateSession(token, userId, expiresAt);
+  await dbCreateSession(token, userId, expiresAt);
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
@@ -65,9 +65,9 @@ export async function getCurrentUser(): Promise<SafeUser | null> {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return null;
-  const session = dbGetSession(token);
+  const session = await dbGetSession(token);
   if (!session || session.expires_at < Date.now()) return null;
-  const user = getUserById(session.user_id);
+  const user = await getUserById(session.user_id);
   return user ? toSafe(user) : null;
 }
 
@@ -75,6 +75,6 @@ export async function getCurrentUser(): Promise<SafeUser | null> {
 export async function endSession() {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
-  if (token) dbDeleteSession(token);
+  if (token) await dbDeleteSession(token);
   store.delete(SESSION_COOKIE);
 }

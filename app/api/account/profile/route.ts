@@ -22,7 +22,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: "Phone and address cannot be empty." }, { status: 400 });
   }
 
-  const updated = updateUserProfile(me.id, {
+  const updated = await updateUserProfile(me.id, {
     name: body.name?.trim(),
     phone,
     address,

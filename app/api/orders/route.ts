@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       ? body.total
       : body.items.reduce((s, it) => s + (it.price || 0) * (it.qty || 0), 0);
 
-  const order = createOrder({
+  const order = await createOrder({
     customer_name: me.name,
     phone: me.phone,
     address: me.address,
@@ -54,5 +54,5 @@ export async function GET() {
   if (!(await getCurrentUser())) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
-  return NextResponse.json({ orders: listOrders() });
+  return NextResponse.json({ orders: await listOrders() });
 }

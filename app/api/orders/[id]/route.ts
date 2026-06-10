@@ -22,7 +22,7 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
   if (!body.status || !STATUSES.includes(body.status)) {
     return NextResponse.json({ error: "Invalid status." }, { status: 400 });
   }
-  const ok = updateOrderStatus(id, body.status);
+  const ok = await updateOrderStatus(id, body.status);
   if (!ok) return NextResponse.json({ error: "Order not found." }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

@@ -8,6 +8,7 @@ export type Product = {
   name: string;
   description: string;
   price: number;
+  image: string;
   available: number; // 0 | 1
   sort_order: number;
 };

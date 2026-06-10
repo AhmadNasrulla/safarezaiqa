@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Markdown } from "@/app/components/Markdown";
 
 /**
  * Reusable AI panel. Posts a `part` key (+ optional analyst focus) to the
@@ -110,82 +111,6 @@ export function AIGenerator({
       )}
     </div>
   );
-}
-
-/* ---------- tiny markdown renderer (no dependency) ---------- */
-
-function Markdown({ text }: { text: string }) {
-  const lines = text.replace(/\r\n/g, "\n").split("\n");
-  const blocks: ReactBlock[] = [];
-  let list: string[] = [];
-
-  const flushList = () => {
-    if (list.length) {
-      blocks.push({ type: "ul", items: [...list] });
-      list = [];
-    }
-  };
-
-  for (const raw of lines) {
-    const line = raw.trimEnd();
-    if (/^\s*[-*]\s+/.test(line)) {
-      list.push(line.replace(/^\s*[-*]\s+/, ""));
-    } else if (/^###\s+/.test(line)) {
-      flushList();
-      blocks.push({ type: "h3", text: line.replace(/^###\s+/, "") });
-    } else if (/^##\s+/.test(line)) {
-      flushList();
-      blocks.push({ type: "h2", text: line.replace(/^##\s+/, "") });
-    } else if (/^#\s+/.test(line)) {
-      flushList();
-      blocks.push({ type: "h2", text: line.replace(/^#\s+/, "") });
-    } else if (line.trim() === "---") {
-      flushList();
-      blocks.push({ type: "hr" });
-    } else if (line.trim() === "") {
-      flushList();
-    } else {
-      flushList();
-      blocks.push({ type: "p", text: line });
-    }
-  }
-  flushList();
-
-  return (
-    <div className="ai-prose">
-      {blocks.map((b, i) => {
-        if (b.type === "h2") return <h2 key={i} dangerouslySetInnerHTML={inline(b.text)} />;
-        if (b.type === "h3") return <h3 key={i} dangerouslySetInnerHTML={inline(b.text)} />;
-        if (b.type === "hr") return <hr key={i} />;
-        if (b.type === "ul")
-          return (
-            <ul key={i}>
-              {b.items.map((it, j) => (
-                <li key={j} dangerouslySetInnerHTML={inline(it)} />
-              ))}
-            </ul>
-          );
-        return <p key={i} dangerouslySetInnerHTML={inline(b.text)} />;
-      })}
-    </div>
-  );
-}
-
-type ReactBlock =
-  | { type: "h2" | "h3" | "p"; text: string }
-  | { type: "ul"; items: string[] }
-  | { type: "hr" };
-
-/** Convert **bold** and `code`, escaping HTML first. */
-function inline(text: string): { __html: string } {
-  const escaped = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-  const html = escaped
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/`([^`]+?)`/g, '<code class="text-gold-soft">$1</code>');
-  return { __html: html };
 }
 
 /* ---------- icons ---------- */

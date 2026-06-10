@@ -22,11 +22,11 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
-  if (getUserByEmail(email)) {
+  if (await getUserByEmail(email)) {
     return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
   }
 
-  const user = createUser({ name, email, password_hash: hashPassword(password), role: "admin" });
+  const user = await createUser({ name, email, password_hash: hashPassword(password), role: "admin" });
   await startSession(user.id);
   return NextResponse.json({ user: { id: user.id, name: user.name, email: user.email } });
 }

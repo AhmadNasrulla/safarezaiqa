@@ -6,15 +6,16 @@ import { CATEGORY_ORDER } from "@/app/lib/types";
 import { Card, SectionHeader } from "@/app/components/ui";
 
 const rs = (n: number) => `Rs. ${n.toLocaleString()}`;
-const blank = { category: CATEGORY_ORDER[0], name: "", description: "", price: "" };
+const blank = { category: CATEGORY_ORDER[0], name: "", description: "", price: "", image: "" };
+type Draft = typeof blank;
 
 export function MenuManager() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  const [adding, setAdding] = useState(blank);
+  const [adding, setAdding] = useState<Draft>(blank);
   const [editId, setEditId] = useState<number | null>(null);
-  const [editDraft, setEditDraft] = useState({ category: "", name: "", description: "", price: "" });
+  const [editDraft, setEditDraft] = useState<Draft>(blank);
 
   async function load() {
     setLoading(true);
@@ -89,6 +90,8 @@ export function MenuManager() {
   const input =
     "rounded-lg border border-border bg-bg/60 px-3 py-2 text-sm text-text outline-none placeholder:text-text-dim focus:border-gold/50";
 
+  const totalLive = products.filter((p) => p.available).length;
+
   return (
     <div className="space-y-8">
       <SectionHeader
@@ -96,6 +99,15 @@ export function MenuManager() {
         title="Menu Manager"
         subtitle="Add, edit, delete and toggle availability for every item. Changes appear instantly on the customer ordering site."
       />
+
+      <div className="flex flex-wrap gap-3 text-sm">
+        <span className="rounded-full border border-border bg-surface px-3 py-1 text-text-muted">
+          {products.length} items
+        </span>
+        <span className="rounded-full border border-green/30 bg-green/10 px-3 py-1 text-green">
+          {totalLive} live
+        </span>
+      </div>
 
       {/* Add product */}
       <Card className="p-6">
@@ -136,6 +148,12 @@ export function MenuManager() {
           placeholder="Description (optional)"
           value={adding.description}
           onChange={(e) => setAdding({ ...adding, description: e.target.value })}
+          className={`${input} mt-3 w-full`}
+        />
+        <input
+          placeholder="Image path (optional) — e.g. /items/biryani-chicken.png"
+          value={adding.image}
+          onChange={(e) => setAdding({ ...adding, image: e.target.value })}
           className={`${input} mt-3 w-full`}
         />
         {err && <p className="mt-3 text-sm text-red">⚠️ {err}</p>}
@@ -186,6 +204,12 @@ export function MenuManager() {
                           placeholder="Description"
                           className={`${input} mt-3 w-full`}
                         />
+                        <input
+                          value={editDraft.image}
+                          onChange={(e) => setEditDraft({ ...editDraft, image: e.target.value })}
+                          placeholder="Image path — e.g. /items/biryani-chicken.png"
+                          className={`${input} mt-3 w-full`}
+                        />
                         <div className="mt-3 flex gap-2">
                           <button
                             onClick={() => saveEdit(p.id)}
@@ -204,11 +228,12 @@ export function MenuManager() {
                     ) : (
                       <div
                         key={p.id}
-                        className={`flex items-center justify-between gap-4 rounded-xl border border-border-soft bg-surface/60 p-3.5 ${
+                        className={`flex items-center gap-4 rounded-xl border border-border-soft bg-surface/60 p-3 ${
                           p.available ? "" : "opacity-60"
                         }`}
                       >
-                        <div className="min-w-0">
+                        <Thumb src={p.image} alt={p.name} />
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <p className="truncate font-medium text-text">{p.name}</p>
                             {!p.available && (
@@ -238,6 +263,7 @@ export function MenuManager() {
                                 name: p.name,
                                 description: p.description,
                                 price: String(p.price),
+                                image: p.image,
                               });
                             }}
                             className="rounded-lg border border-border px-2.5 py-1.5 text-xs text-text-muted hover:text-gold-soft"
@@ -261,5 +287,23 @@ export function MenuManager() {
         </div>
       )}
     </div>
+  );
+}
+
+function Thumb({ src, alt }: { src: string; alt: string }) {
+  if (!src) {
+    return (
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-2 text-base text-text-dim">
+        🍽️
+      </div>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      className="h-12 w-12 shrink-0 rounded-lg border border-border object-cover"
+    />
   );
 }

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 // Public: customer site needs location, hours, status and contact.
 export async function GET() {
-  return NextResponse.json({ settings: getSettings() });
+  return NextResponse.json({ settings: await getSettings() });
 }
 
 // Admin only: update location / contact / status.
@@ -34,6 +34,6 @@ export async function PUT(request: NextRequest) {
   for (const key of allowed) {
     if (typeof body[key] === "string") patch[key] = body[key] as string;
   }
-  updateSettings(patch);
-  return NextResponse.json({ settings: getSettings() });
+  await updateSettings(patch);
+  return NextResponse.json({ settings: await getSettings() });
 }

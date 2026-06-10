@@ -49,8 +49,16 @@ export const PART_PROMPTS: Record<string, PartConfig> = {
     prompt: `Using the business context below, design ideas for Safar-e-Zaiqa's AI marketing automation. Cover: (1) a WhatsApp chatbot conversation flow (greeting → menu → customise → order → pickup/location → payment → feedback) as a short step list, (2) two automated re-engagement triggers (e.g. cart abandonment, win-back), and (3) a loyalty program concept with tiers and a clear reward ladder in PKR. Map each idea to an AARRR stage (Awareness, Acquisition, Activation/Purchase, Retention, Referral/Advocacy).\n\nCONTEXT:\n${BRAND_CONTEXT}`,
   },
   "executive-challenge": {
-    system: `You are an AI strategy advisor running an executive war-room. The founder needs a clear, decisive recovery plan. ${STYLE_RULES}`,
-    prompt: `SCENARIO: After 3 strong months, Safar-e-Zaiqa's monthly sales have suddenly dropped 25%. Using the business context below, diagnose the most likely root causes (internal and external), then recommend a prioritised 30/60/90-day corrective action plan with expected outcomes and the metrics that prove recovery. Be specific and decisive — this is a board-level memo.\n\nCONTEXT:\n${BRAND_CONTEXT}`,
+    system: `You are an AI strategy advisor running an executive war-room for the founder of a food truck. Be clear, decisive and practical. ${STYLE_RULES}`,
+    prompt: `A situation has occurred at Safar-e-Zaiqa, described by the founder in the analyst focus below. Using the business context, respond as a board-level decision memo with these sections:\n## Situation Read — restate the problem and its likely scale\n## Root Causes — the most probable internal & external drivers\n## 30/60/90-Day Action Plan — prioritised, specific steps for each window\n## Expected Outcomes & Metrics — what success looks like and how we'll measure it\nIf the situation is vague, state the assumptions you are making.\n\nCONTEXT:\n${BRAND_CONTEXT}`,
+  },
+  "competitor-swot": {
+    system: `You are an AI competitive-intelligence analyst. Produce tight, decision-ready SWOT analyses. ${STYLE_RULES}`,
+    prompt: `Produce a focused SWOT analysis of the competitor described in the analyst focus below, specifically relative to Safar-e-Zaiqa. Output EXACTLY these four sections, each with 3 short bullet points:\n## Strengths\n## Weaknesses\n## Opportunities\n## Threats\nKeep each bullet under 14 words and concrete.\n\nCONTEXT:\n${BRAND_CONTEXT}`,
+  },
+  "competitor-insights": {
+    system: `You are an AI competitive strategist advising Safar-e-Zaiqa. ${STYLE_RULES}`,
+    prompt: `For the competitor described in the analyst focus below, give Safar-e-Zaiqa a sharp playbook:\n## How They Win — what makes this competitor strong\n## Our Counter-Move — 3 specific actions to win share from them\n## Watch-Outs — what they might do to us and how to pre-empt it\nBe decisive and specific to a student-focused biryani/pulao food truck.\n\nCONTEXT:\n${BRAND_CONTEXT}`,
   },
   assumptions: {
     system: `You are an AI analyst pressure-testing the assumptions behind a business plan. ${STYLE_RULES}`,
