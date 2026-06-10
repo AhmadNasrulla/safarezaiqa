@@ -1,0 +1,12 @@
+
+> foodtruck@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.23.208.1:3000
+- Environments: .env.local, .env
+✓ Ready in 294ms
+
+ GET /admin 200 in 452ms (next.js: 303ms, application-code: 149ms)
+ GET /api/products 200 in 58ms (next.js: 46ms, application-code: 12ms)
