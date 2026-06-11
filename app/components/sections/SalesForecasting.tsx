@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Card, SectionHeader, Stat, BarChart } from "@/app/components/ui";
+import { Card, SectionHeader, Stat } from "@/app/components/ui";
+import { LineChart } from "@/app/components/Chart";
 import { AIGenerator } from "@/app/components/AIGenerator";
 
 const pkr = (n: number) => `PKR ${Math.round(n).toLocaleString()}`;
@@ -113,7 +114,7 @@ export function SalesForecasting() {
           <h3 className="text-lg font-semibold text-text">Revenue by weekday</h3>
           <p className="mt-1 text-sm text-text-muted">Modelled from your weekly total — peaks on Fri–Sun.</p>
           <div className="mt-6">
-            <BarChart data={f.daily} highlightIndex={peak} format={(n) => pkr(n)} />
+            <LineChart data={f.daily} highlightIndex={peak} format={(n) => pkr(n)} />
           </div>
         </Card>
 
@@ -122,7 +123,7 @@ export function SalesForecasting() {
           <h3 className="text-lg font-semibold text-text">6-month revenue trajectory</h3>
           <p className="mt-1 text-sm text-text-muted">Compounding at {inp.growth}% per month.</p>
           <div className="mt-6">
-            <LineChart points={f.months} format={(n) => `PKR ${(n / 1000).toFixed(0)}K`} />
+            <LineChart data={f.months} format={(n) => `PKR ${(n / 1000).toFixed(0)}K`} />
           </div>
           <div className="mt-4 flex items-center justify-between rounded-lg border border-gold/20 bg-gold/[0.05] px-4 py-2.5 text-sm">
             <span className="text-text-muted">6-month cumulative revenue</span>
@@ -173,58 +174,5 @@ function Field({
         }`}
       />
     </label>
-  );
-}
-
-/* SVG area/line chart — dependency-free */
-function LineChart({
-  points,
-  format = (n) => String(n),
-}: {
-  points: { label: string; value: number }[];
-  format?: (n: number) => string;
-}) {
-  const W = 600;
-  const H = 220;
-  const padX = 36;
-  const padY = 28;
-  const max = Math.max(...points.map((p) => p.value), 1);
-  const min = Math.min(...points.map((p) => p.value), 0);
-  const span = max - min || 1;
-  const stepX = (W - padX * 2) / Math.max(1, points.length - 1);
-  const x = (i: number) => padX + i * stepX;
-  const y = (v: number) => padY + (H - padY * 2) * (1 - (v - min) / span);
-
-  const line = points.map((p, i) => `${i === 0 ? "M" : "L"} ${x(i)} ${y(p.value)}`).join(" ");
-  const area = `${line} L ${x(points.length - 1)} ${H - padY} L ${x(0)} ${H - padY} Z`;
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 220 }}>
-      <defs>
-        <linearGradient id="areaGold" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="rgba(212,175,55,0.35)" />
-          <stop offset="100%" stopColor="rgba(212,175,55,0)" />
-        </linearGradient>
-        <linearGradient id="lineGold" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#e8cf85" />
-          <stop offset="100%" stopColor="#a9851f" />
-        </linearGradient>
-      </defs>
-      {/* baseline */}
-      <line x1={padX} y1={H - padY} x2={W - padX} y2={H - padY} stroke="var(--border)" strokeWidth="1" />
-      <path d={area} fill="url(#areaGold)" />
-      <path d={line} fill="none" stroke="url(#lineGold)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      {points.map((p, i) => (
-        <g key={p.label}>
-          <circle cx={x(i)} cy={y(p.value)} r="4" fill="#16161f" stroke="#e8cf85" strokeWidth="2" />
-          <text x={x(i)} y={y(p.value) - 10} textAnchor="middle" className="fill-[var(--text-muted)]" style={{ fontSize: 11, fontWeight: 600 }}>
-            {format(p.value)}
-          </text>
-          <text x={x(i)} y={H - padY + 16} textAnchor="middle" className="fill-[var(--text-dim)]" style={{ fontSize: 11 }}>
-            {p.label}
-          </text>
-        </g>
-      ))}
-    </svg>
   );
 }

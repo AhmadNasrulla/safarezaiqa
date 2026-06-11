@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { SafeUser } from "@/app/lib/auth";
-import { Card, Stat, Pill, BarChart } from "@/app/components/ui";
+import { Card, Stat, Pill } from "@/app/components/ui";
+import { LineChart } from "@/app/components/Chart";
 
 type Order = {
   id: number;
@@ -54,6 +55,7 @@ export function AdminHome({
     days.push({ label, value: orders.filter((o) => o.created_at?.slice(0, 10) === iso).length });
   }
   const hasOrderHistory = days.some((d) => d.value > 0);
+  const peakDay = days.reduce((b, d, i, a) => (d.value > a[b].value ? i : b), 0);
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -98,7 +100,7 @@ export function AdminHome({
           <p className="mt-1 text-sm text-text-muted">Daily order volume placed from the customer site.</p>
           <div className="mt-6">
             {hasOrderHistory ? (
-              <BarChart data={days} format={(n) => String(n)} />
+              <LineChart data={days} format={(n) => String(n)} highlightIndex={peakDay} />
             ) : (
               <div className="flex h-[180px] items-center justify-center rounded-xl border border-dashed border-border text-sm text-text-dim">
                 No orders yet — they&apos;ll chart here as they come in.
