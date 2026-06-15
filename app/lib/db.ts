@@ -2,6 +2,7 @@ import { createClient, type Client, type InValue, type ResultSet } from "@libsql
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { hashPassword } from "./auth";
+import { analyzeFeedback, QUALITY_ORDER, type QualityKey } from "./feedback-analyzer";
 
 /**
  * Database layer built on libSQL (@libsql/client) — SQLite-compatible.
@@ -56,6 +57,25 @@ export type Settings = {
   whatsapp_number: string;
   truck_status: string;
   hours: string;
+};
+
+export type FeedbackRow = {
+  id: number;
+  user_id: number | null;
+  customer_name: string;
+  email: string;
+  order_id: number | null;
+  rating: number;
+  message: string;
+  sentiment: string;
+  sentiment_score: number;
+  score_taste: number;
+  score_service: number;
+  score_value: number;
+  score_hygiene: number;
+  analysis_json: string;
+  status: string;
+  created_at: string;
 };
 
 type Glob = typeof globalThis & { __sezClient?: Client; __sezReady?: Promise<Client> };
@@ -122,6 +142,24 @@ async function init(): Promise<Client> {
       items_json TEXT NOT NULL,
       total INTEGER NOT NULL DEFAULT 0,
       note TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'new',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS feedback (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      customer_name TEXT NOT NULL DEFAULT '',
+      email TEXT NOT NULL DEFAULT '',
+      order_id INTEGER,
+      rating INTEGER NOT NULL DEFAULT 0,
+      message TEXT NOT NULL DEFAULT '',
+      sentiment TEXT NOT NULL DEFAULT 'neutral',
+      sentiment_score REAL NOT NULL DEFAULT 0,
+      score_taste INTEGER NOT NULL DEFAULT 0,
+      score_service INTEGER NOT NULL DEFAULT 0,
+      score_value INTEGER NOT NULL DEFAULT 0,
+      score_hygiene INTEGER NOT NULL DEFAULT 0,
+      analysis_json TEXT NOT NULL DEFAULT '{}',
       status TEXT NOT NULL DEFAULT 'new',
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )`,
@@ -335,6 +373,74 @@ export async function listOrders(): Promise<OrderRow[]> {
 export async function updateOrderStatus(id: number, status: string): Promise<boolean> {
   const c = await db();
   const rs = await c.execute({ sql: "UPDATE orders SET status = ? WHERE id = ?", args: [status, id] });
+  return rs.rowsAffected > 0;
+}
+
+/* ----------------------------- Feedback ----------------------------- */
+
+export const FEEDBACK_STATUSES = ["new", "reviewed", "resolved", "archived"] as const;
+
+/**
+ * Persist a customer review. The offline Zaiqa Sense model analyses the text
+ * (+ optional star rating) at write time, so the admin dashboard reads back
+ * pre-computed sentiment + per-pillar scores without any runtime cost or
+ * external API call.
+ */
+export async function createFeedback(f: {
+  user_id?: number | null;
+  customer_name?: string;
+  email?: string;
+  order_id?: number | null;
+  rating?: number;
+  message?: string;
+  pillars?: string[];
+}): Promise<FeedbackRow> {
+  const rating = Math.round(f.rating ?? 0);
+  const message = (f.message ?? "").trim();
+  const pillars = (f.pillars ?? []).filter((p): p is QualityKey =>
+    (QUALITY_ORDER as string[]).includes(p),
+  );
+  const analysis = analyzeFeedback(message, rating >= 1 ? rating : undefined, pillars);
+  const scoreOf = (k: string) => analysis.qualities.find((q) => q.key === k)?.score ?? 50;
+
+  const c = await db();
+  const rs = await c.execute({
+    sql: `INSERT INTO feedback
+      (user_id, customer_name, email, order_id, rating, message, sentiment, sentiment_score,
+       score_taste, score_service, score_value, score_hygiene, analysis_json, status)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'new') RETURNING *`,
+    args: [
+      f.user_id ?? null,
+      f.customer_name?.trim() || "Guest",
+      f.email?.trim() ?? "",
+      f.order_id ?? null,
+      rating,
+      message,
+      analysis.sentiment,
+      analysis.sentimentScore,
+      scoreOf("taste"),
+      scoreOf("service"),
+      scoreOf("value"),
+      scoreOf("hygiene"),
+      JSON.stringify(analysis),
+    ],
+  });
+  return mapRows<FeedbackRow>(rs)[0];
+}
+
+export async function listFeedback(): Promise<FeedbackRow[]> {
+  return all<FeedbackRow>("SELECT * FROM feedback ORDER BY id DESC LIMIT 300");
+}
+
+export async function updateFeedbackStatus(id: number, status: string): Promise<boolean> {
+  const c = await db();
+  const rs = await c.execute({ sql: "UPDATE feedback SET status = ? WHERE id = ?", args: [status, id] });
+  return rs.rowsAffected > 0;
+}
+
+export async function deleteFeedback(id: number): Promise<boolean> {
+  const c = await db();
+  const rs = await c.execute({ sql: "DELETE FROM feedback WHERE id = ?", args: [id] });
   return rs.rowsAffected > 0;
 }
 

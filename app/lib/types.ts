@@ -35,6 +35,25 @@ export type CustomerUser = {
   address: string;
 };
 
+export type Feedback = {
+  id: number;
+  user_id: number | null;
+  customer_name: string;
+  email: string;
+  order_id: number | null;
+  rating: number;
+  message: string;
+  sentiment: string;
+  sentiment_score: number;
+  score_taste: number;
+  score_service: number;
+  score_value: number;
+  score_hygiene: number;
+  analysis_json: string;
+  status: string;
+  created_at: string;
+};
+
 export const CATEGORY_ORDER = [
   "The Signature Daigs",
   'The "Safar" Combos',

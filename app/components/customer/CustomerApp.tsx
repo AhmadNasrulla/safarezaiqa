@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Product, PublicSettings, CartItem, CustomerUser } from "@/app/lib/types";
 import { CATEGORY_ORDER } from "@/app/lib/types";
 import { AccountPanel } from "@/app/components/customer/AccountPanel";
+import { FeedbackForm } from "@/app/components/customer/FeedbackForm";
 import { Reveal } from "@/app/components/customer/Reveal";
 
 const rs = (n: number) => `Rs. ${n.toLocaleString()}`;
@@ -85,6 +86,7 @@ export function CustomerApp({
           <div className="flex items-center gap-2">
             <a href="#menu" className="hidden rounded-lg px-3 py-2 text-sm text-text-muted hover:text-text sm:block">Menu</a>
             <a href="#location" className="hidden rounded-lg px-3 py-2 text-sm text-text-muted hover:text-text sm:block">Location</a>
+            <a href="#feedback" className="hidden rounded-lg px-3 py-2 text-sm text-text-muted hover:text-text sm:block">Feedback</a>
             <button
               onClick={() => setAccountOpen(true)}
               className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text transition hover:border-gold/40"
@@ -254,6 +256,11 @@ export function CustomerApp({
         {/* Location */}
         <Reveal as="section">
           <LocationSection settings={settings} isOpen={isOpen} />
+        </Reveal>
+
+        {/* Feedback */}
+        <Reveal as="section">
+          <FeedbackForm me={me} />
         </Reveal>
 
         <footer className="mt-16 border-t border-border py-8 text-center text-xs text-text-dim">
@@ -460,6 +467,9 @@ function CartDrawer({
       } else {
         setDone(`Order #${data.id} placed! Our team will reach out to confirm.`);
       }
+      // Order is in — empty the cart and clear the note.
+      onClear();
+      setNote("");
     } catch {
       setDone("Network error. Please try again.");
     } finally {

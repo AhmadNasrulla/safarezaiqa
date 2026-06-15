@@ -14,6 +14,7 @@ type Order = {
   items_json: string;
 };
 type Product = { id: number; available: number };
+type Feedback = { id: number; rating: number; sentiment: string; status: string };
 
 const rs = (n: number) => `Rs. ${n.toLocaleString()}`;
 
@@ -26,16 +27,19 @@ export function AdminHome({
 }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/orders").then((r) => (r.ok ? r.json() : { orders: [] })),
       fetch("/api/products").then((r) => (r.ok ? r.json() : { products: [] })),
+      fetch("/api/feedback").then((r) => (r.ok ? r.json() : { feedback: [] })),
     ])
-      .then(([o, p]) => {
+      .then(([o, p, f]) => {
         setOrders(o.orders ?? []);
         setProducts(p.products ?? []);
+        setFeedback(f.feedback ?? []);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -57,6 +61,13 @@ export function AdminHome({
   const hasOrderHistory = days.some((d) => d.value > 0);
   const peakDay = days.reduce((b, d, i, a) => (d.value > a[b].value ? i : b), 0);
 
+  // Customer feedback pulse
+  const rated = feedback.filter((f) => f.rating >= 1);
+  const avgRating = rated.length ? rated.reduce((s, f) => s + f.rating, 0) / rated.length : 0;
+  const positive = feedback.filter((f) => f.sentiment === "positive").length;
+  const positivePct = feedback.length ? Math.round((positive / feedback.length) * 100) : 0;
+  const newNegative = feedback.filter((f) => f.status === "new" && f.sentiment === "negative").length;
+
   const greeting = (() => {
     const h = new Date().getHours();
     return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
@@ -65,10 +76,10 @@ export function AdminHome({
   const quick = [
     { id: "menu", icon: "🍛", label: "Manage Menu" },
     { id: "orders", icon: "🧾", label: "View Orders" },
+    { id: "feedback", icon: "💬", label: "Feedback" },
     { id: "location", icon: "📍", label: "Location" },
     { id: "part2", icon: "📊", label: "Forecast" },
     { id: "part3", icon: "⚔️", label: "Competitors" },
-    { id: "part5", icon: "🎯", label: "War-room" },
   ];
 
   return (
@@ -156,6 +167,60 @@ export function AdminHome({
           </div>
         )}
       </Card>
+
+      {/* Customer pulse */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-text">Customer pulse</h3>
+            <p className="mt-1 text-sm text-text-muted">Read live from reviews by Zaiqa Sense.</p>
+          </div>
+          <button onClick={() => onNavigate("feedback")} className="text-xs text-gold-soft hover:underline">
+            Open feedback →
+          </button>
+        </div>
+        {loading ? (
+          <p className="mt-4 text-sm text-text-muted">Loading…</p>
+        ) : feedback.length === 0 ? (
+          <p className="mt-4 text-sm text-text-muted">No reviews yet — they&apos;ll show up here as customers rate you.</p>
+        ) : (
+          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <Pulse label="Avg rating" value={avgRating ? `${avgRating.toFixed(1)} ★` : "—"} accent />
+            <Pulse label="Positive" value={`${positivePct}%`} />
+            <Pulse label="Total reviews" value={String(feedback.length)} />
+            <Pulse
+              label="Needs reply"
+              value={String(newNegative)}
+              tone={newNegative > 0 ? "red" : undefined}
+            />
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function Pulse({
+  label,
+  value,
+  accent,
+  tone,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+  tone?: "red";
+}) {
+  return (
+    <div className="rounded-xl border border-border-soft bg-surface/50 p-3.5">
+      <p className="text-xs text-text-dim">{label}</p>
+      <p
+        className={`mt-1 text-xl font-bold ${
+          tone === "red" ? "text-red" : accent ? "text-gradient-gold" : "text-text"
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

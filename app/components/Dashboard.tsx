@@ -12,6 +12,7 @@ import { CompetitiveIntelligence } from "@/app/components/sections/CompetitiveIn
 import { ExecutiveChallenge } from "@/app/components/sections/ExecutiveChallenge";
 import { MenuManager } from "@/app/components/admin/MenuManager";
 import { OrdersPanel } from "@/app/components/admin/OrdersPanel";
+import { FeedbackPanel } from "@/app/components/admin/FeedbackPanel";
 import { LocationSettings } from "@/app/components/admin/LocationSettings";
 
 type Group = "home" | "ops" | "intel";
@@ -28,6 +29,7 @@ const TABS: Tab[] = [
   { id: "home", label: "Dashboard", short: "Home", icon: "🏠", group: "home", render: (nav, user) => <AdminHome user={user} onNavigate={nav} /> },
   { id: "menu", label: "Menu Manager", short: "Menu", icon: "🍛", group: "ops", render: () => <MenuManager /> },
   { id: "orders", label: "Orders", short: "Orders", icon: "🧾", group: "ops", render: () => <OrdersPanel /> },
+  { id: "feedback", label: "Customer Feedback", short: "Feedback", icon: "💬", group: "ops", render: () => <FeedbackPanel /> },
   { id: "location", label: "Location & Contact", short: "Location", icon: "📍", group: "ops", render: () => <LocationSettings /> },
   { id: "part1", label: "Customer Intelligence", short: "Customers", icon: "👥", group: "intel", render: () => <CustomerIntelligence /> },
   { id: "part2", label: "Sales Forecasting", short: "Forecast", icon: "📊", group: "intel", render: () => <SalesForecasting /> },
